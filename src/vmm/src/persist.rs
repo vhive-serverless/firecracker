@@ -532,11 +532,10 @@ pub fn restore_from_snapshot(
     for i in 0..2 {
         // We assume that one of the block devices is the rootfs, the other being the
         // container image snapshot.
-        if microvm_state.device_states.block_devices[i]
+        let disk_path = &microvm_state.device_states.block_devices[i]
             .device_state
-            .disk_path
-            .contains("snap")
-        {
+            .disk_path;
+        if disk_path.contains("snap") || disk_path.contains("ctrstub") {
             microvm_state.device_states.block_devices[i]
                 .device_state
                 .disk_path = container_snapshot_path.clone();

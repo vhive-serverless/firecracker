@@ -26,6 +26,7 @@ use crate::cpu_config::x86_64::cpuid::CpuidTrait;
 #[cfg(target_arch = "x86_64")]
 use crate::cpu_config::x86_64::cpuid::common::get_vendor_id_from_host;
 use crate::device_manager::{DevicePersistError, DevicesState};
+use crate::devices::virtio::block::persist::BlockState;
 use crate::logger::{info, warn};
 use crate::resources::VmResources;
 use crate::seccomp::BpfThreadMap;
@@ -320,6 +321,30 @@ pub fn restore_from_snapshot(
     vm_resources: &mut VmResources,
 ) -> Result<Arc<Mutex<Vmm>>, RestoreFromSnapshotError> {
     let mut microvm_state = snapshot_state_from_file(&params.snapshot_path)?;
+
+    let container_snapshot_path = &params.container_snapshot_path;
+    // We assume that each microVM is backed by exactly one container image
+    // snapshot device (i.e., that no more than one container is run on each microVM).
+    assert_eq!(microvm_state.device_states.mmio_state.block_devices.len(), 2);
+    for i in 0..2 {
+        // We assume that one of the block devices is the rootfs, the other being the
+        // container image snapshot.
+        let block_device = &mut microvm_state.device_states.mmio_state.block_devices[i];
+        match &mut block_device.device_state {
+            // If this is a virtio block with a disk path that looks like a container
+            // snapshot, replace it with the provided container snapshot path.
+            BlockState::Virtio(virtio_state) => {
+                if virtio_state.disk_path.contains("snap")
+                    || virtio_state.disk_path.contains("ctrstub")
+                {
+                    virtio_state.disk_path = container_snapshot_path.clone();
+                }
+            }
+            // We don't handle vhost-user block devices here.
+            _ => {}
+        }
+    }
+
     for entry in &params.network_overrides {
         microvm_state
             .device_states

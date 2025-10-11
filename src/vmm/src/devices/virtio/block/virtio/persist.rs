@@ -57,7 +57,7 @@ pub struct VirtioBlockState {
     partuuid: Option<String>,
     cache_type: CacheType,
     root_device: bool,
-    disk_path: String,
+    pub disk_path: String,
     pub virtio_state: VirtioDeviceState,
     rate_limiter_state: RateLimiterState,
     file_engine_type: FileEngineTypeState,

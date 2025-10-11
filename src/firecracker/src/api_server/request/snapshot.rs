@@ -110,6 +110,7 @@ fn parse_put_snapshot_load(body: &Body) -> Result<ParsedRequest, RequestError> {
             || snapshot_config.track_dirty_pages,
         resume_vm: snapshot_config.resume_vm,
         network_overrides: snapshot_config.network_overrides,
+        container_snapshot_path: snapshot_config.container_snapshot_path,
     };
 
     // Construct the `ParsedRequest` object.

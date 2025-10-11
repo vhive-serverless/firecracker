@@ -1247,6 +1247,7 @@ definitions:
       the two `mem_*` fields must be present in the body of the request.
     required:
       - snapshot_path
+      - container_snapshot_path
     properties:
       enable_diff_snapshots:
         type: boolean
@@ -1280,7 +1281,10 @@ definitions:
         description: Network host device names to override
         items:
           $ref: "#/definitions/NetworkOverride"
-
+      container_snapshot_path:
+        type: string
+        description:
+          Path to the disk device backing the disk state at the time of the snapshot creation.
 
   TokenBucket:
     type: object
